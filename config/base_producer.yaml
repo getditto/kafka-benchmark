@@ -8,23 +8,12 @@ default:
     queue.buffering.max.messages: 1000000
 
 scenarios:
-  10B_bursts:
+  hydra:
     repeat_times: 5
     repeat_pause: 10
-    topic: benchmark_topic_10B
+    topic: hydra-transactions
     message_size: 10
-    message_count: 20000000
+    message_count: 1000
+    message_file: ../hydra/integration-test/transactions.blob
 
-  1KB_bursts:
-    repeat_times: 3
-    repeat_pause: 20
-    topic: benchmark_topic_1KB
-    message_size: 1024
-    message_count: 500000
-
-  10KB_bursts:
-    repeat_times: 3
-    repeat_pause: 20
-    topic: benchmark_topic_10KB
-    message_size: 10240
-    message_count: 50000
+  

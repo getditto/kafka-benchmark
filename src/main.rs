@@ -9,11 +9,10 @@ extern crate serde_derive;
 extern crate serde_yaml;
 
 mod config;
-mod consumer;
 mod producer;
 mod units;
 
-use config::{ConsumerBenchmark, ProducerBenchmark};
+use config::ProducerBenchmark;
 
 fn main() {
     let matches = clap_app!(app =>
@@ -21,7 +20,8 @@ fn main() {
         (@arg benchmark_type: +takes_value +required "Benchmark type ('producer' or 'consumer')")
         (@arg config: +takes_value +required "The configuration file")
         (@arg scenario: +takes_value +required "The scenario you want to execute")
-    ).get_matches();
+    )
+    .get_matches();
 
     env_logger::init();
 
@@ -29,8 +29,7 @@ fn main() {
     let scenario_name = matches.value_of("scenario").unwrap();
 
     match matches.value_of("benchmark_type").unwrap() {
-        "consumer" => consumer::run(&ConsumerBenchmark::from_file(config_file), scenario_name),
         "producer" => producer::run(&ProducerBenchmark::from_file(config_file), scenario_name),
-        _ => println!("Undefined benchmark type. Please use 'producer' or 'consumer'"),
+        _ => println!("Undefined benchmark type. Please use 'producer'"),
     }
 }

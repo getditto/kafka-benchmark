@@ -1,47 +1,24 @@
-use rand::{self, Rng};
+use std::{fs::File, io::BufRead, io::BufReader, path::PathBuf};
 
-pub struct CachedMessages(Vec<Vec<u8>>);
+pub struct CachedMessages(PathBuf);
 
 impl CachedMessages {
-    pub fn new(msg_size: u64, cache_size: u64) -> CachedMessages {
-        let messages = (0..(cache_size / msg_size))
-            .map(|_| {
-                rand::thread_rng()
-                    .gen_iter::<u8>()
-                    .map(|v| v % 86 + 40)
-                    .take(msg_size as usize)
-                    .collect::<Vec<u8>>()
-            })
-            .collect::<Vec<_>>();
-        CachedMessages(messages)
+    pub fn from_file(file: PathBuf) -> Self {
+        Self(file)
     }
 }
 
 impl<'a> IntoIterator for &'a CachedMessages {
-    type Item = &'a [u8];
-    type IntoIter = CachedMessagesIterator<'a>;
+    type Item = Vec<u8>;
+    type IntoIter = Box<dyn Iterator<Item = Vec<u8>>>;
 
     fn into_iter(self) -> Self::IntoIter {
-        CachedMessagesIterator {
-            index: rand::thread_rng().gen_range(0, self.0.len()),
-            cache: self,
-        }
-    }
-}
-
-pub struct CachedMessagesIterator<'a> {
-    pub index: usize,
-    pub cache: &'a CachedMessages,
-}
-
-impl<'a> Iterator for CachedMessagesIterator<'a> {
-    type Item = &'a [u8];
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.index == self.cache.0.len() {
-            self.index = 0;
-        }
-        self.index += 1;
-        Some(self.cache.0[self.index - 1].as_slice())
+        let file = File::open(&self.0).unwrap();
+        let reader = BufReader::new(file);
+        Box::new(
+            reader
+                .lines()
+                .map(|line| base64::decode(line.unwrap()).unwrap()),
+        )
     }
 }
